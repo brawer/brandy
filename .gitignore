@@ -1,0 +1,5 @@
+*~
+*.pyc
+public_html
+venv
+
