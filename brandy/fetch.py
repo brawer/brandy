@@ -23,7 +23,7 @@ def fetch_chain(chain):
     else:
         prev_content = b''
 
-    p = subprocess.run(args=['python3', 'brandbot/brandbot/%s.py' % chain],
+    p = subprocess.run(args=['python3', 'brandy/brandy/%s.py' % chain],
                        capture_output=True, encoding='utf8', timeout=60)
     with open(os.path.join(dirname, 'log.txt'), 'w') as log:
         if p.returncode == 0 and p.stdout != prev_content:
