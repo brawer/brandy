@@ -11,7 +11,8 @@ FEED_URL = 'https://data.geo.admin.ch/ch.bfe.ladestellen-elektromobilitaet/data/
 
 def load(brand):
     c = _convert(_fetch())
-    c['features'] = [f for f in c['features'] if f['properties']['brand:wikidata'] == brand]
+    c['features'] = [f for f in c['features']
+                     if f['properties'].get('operator:wikidata') == brand]
     return c
 
 
@@ -38,38 +39,43 @@ _BRANDS = {
 
 def _convert(feed_json):
     feed = json.loads(feed_json)
-    out_features = []
+    features = []
     for f in feed['features']:
-        props = f['properties']
-        desc = props['description']
-        m = re.search(r'<td class="cell-left">Ladenetzwerk</td>\s+<td><a href="(.+?)"', desc)
-        if not m:
-            continue
-        brand_url = m.group(1)
-        if brand_url.startswith('http://'):
-            brand_url = 'https://' + brand_url[7:]
-        if brand_url.endswith('.ch') or brand_url.endswith('.eu'):
-            brand_url += '/'
-        if brand_url not in _BRANDS:
-            continue
-        brand_wikidata, brand = _BRANDS[brand_url]
-        #print(desc)
-        out_props = {
+        desc = f['properties']['description']
+        props = {
             'amenity': 'charging_station',
-            'brand': brand,
-            'brand:wikidata': brand_wikidata,
-            'ref': convert_ref(f['id'])
+            'ref': _convert_ref(f['id'])
         }
-        out_props.update(_convert_addr(desc))
-        out_features.append({
+        props.update(_convert_operator(desc))
+        props.update(_convert_addr(desc))
+        features.append({
             'type': 'Feature',
             'geometry': f['geometry'],
-            'properties': out_props
+            'properties': props
         })
-    out_features.sort(key=lambda f:f['properties']['ref'])
+    features.sort(key=lambda f:f['properties']['ref'])
     return {
         'type': 'FeatureCollection',
-        'features': out_features
+        'features': features
+    }
+
+
+def _convert_operator(desc):
+    m = re.search(r'<td class="cell-left">Ladenetzwerk</td>\s+<td><a href="(.+?)"', desc)
+    if not m:
+        return {}
+    url = m.group(1)
+    if url.startswith('http://'):
+        url = 'https://' + url[7:]
+    if url.endswith('.ch') or url.endswith('.eu'):
+        url += '/'
+    if url not in _BRANDS:
+        return {}
+    operator_wikidata, operator = _BRANDS[url]
+    return {
+        'name': operator,
+        'operator': operator,
+        'operator:wikidata': operator_wikidata
     }
 
 
@@ -151,7 +157,7 @@ def _make_placewords():
 _placewords = _make_placewords()
 
 
-def convert_ref(ref):
+def _convert_ref(ref):
     if ref.startswith('CH*SWIEE'):  # Swisscharge
         return str(int(ref[8:]))
     return ref
