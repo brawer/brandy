@@ -32,7 +32,7 @@ def _fetch():
         return f.read()
 
 
-_BRANDS = {
+_OPERATORS = {
     'https://www.swisscharge.ch/': ('Q113162249', 'Swisscharge'),
 }
 
@@ -70,9 +70,9 @@ def _convert_operator(desc):
         url = 'https://' + url[7:]
     if url.endswith('.ch') or url.endswith('.eu'):
         url += '/'
-    if url not in _BRANDS:
+    if url not in _OPERATORS:
         return {}
-    operator_wikidata, operator = _BRANDS[url]
+    operator_wikidata, operator = _OPERATORS[url]
     return {
         'name': operator,
         'operator': operator,
