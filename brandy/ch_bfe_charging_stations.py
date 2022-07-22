@@ -32,7 +32,11 @@ def _fetch():
         return f.read()
 
 
+# Counter({'https://www.ecarup.com/': 1480, 'https://www.evpass.ch/': 1194, 'https://www.move.ch/': 724, 'https://www.swisscharge.ch/': 716, 'https://plugnroll.com': 142, 'https://www.lidl.ch/de/unternehmen/filialen-oeffnungszeiten/e-tankstellen': 39, 'https://www.eniwa.ch/': 30, 'https://www.tesla.com/de_CH/supercharger': 22, 'https://www.mobilecharge.ch/': 17, 'https://deviwa.ch/': 14, 'https://www.migrol.ch/de/mobilit%C3%A4t/fast-charging/': 14, 'https://payment.ionity.eu/': 10, 'https://www.ewd.ch/e-tankstellen-in-davos': 8, 'https://www.ewo.ch/privatkunden/elektromobilitaet/': 7, 'https://www.energieuri.ch/privatkunden/elektromobilitaet-photovoltaik-eigenverbrauch/elektromobilitaet': 7, 'https://ebs.swiss/elektromobilitaet/': 6, 'https://www.parkandcharge.ch/': 3, 'https://www.ckw.ch/mobimo': 3, 'https://www.evaltendorf.ch/e-mobilitaet': 2, 'https://fastnedcharging.com/de/': 2, 'https://www.chocolatfrey.ch/': 1, 'https://www.herrliberg.ch/verwaltung/dienstleistungen-a-z.html/217/egov_service/443': 1, 'https://www.villa.ch/': 1, 'https://www.dietikon.ch/wohnenarbeiten/wohnen/mobilitaet/parkieren/4035': 1, 'https://osterwalder.ch/': 1, 'https://paccom.ch/willkommen/': 1, 'https://www.ail.ch/': 1})
+
+
 _OPERATORS = {
+    'https://www.ecarup.com/': ('Q113192759', 'eCarUp'),
     'https://www.swisscharge.ch/': ('Q113162249', 'Swisscharge'),
 }
 
@@ -68,7 +72,7 @@ def _convert_operator(desc):
     url = m.group(1)
     if url.startswith('http://'):
         url = 'https://' + url[7:]
-    if url.endswith('.ch') or url.endswith('.eu'):
+    if url.endswith('.ch') or url.endswith('.eu') or url.endswith('.com'):
         url += '/'
     if url not in _OPERATORS:
         return {}
@@ -209,6 +213,8 @@ _placewords = _make_placewords()
 
 
 def _convert_ref(ref):
+    if ref.startswith('CH*ECUE'):  # eCarUp
+        return ref[7:]
     if ref.startswith('CH*SWIEE'):  # Swisscharge
         return str(int(ref[8:]))
     return ref
