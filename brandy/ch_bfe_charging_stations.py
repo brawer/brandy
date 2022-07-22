@@ -47,6 +47,7 @@ def _convert(feed_json):
             'ref': _convert_ref(f['id'])
         }
         props.update(_convert_operator(desc))
+        props.update(_convert_socket(desc))
         props.update(_convert_addr(desc))
         features.append({
             'type': 'Feature',
@@ -77,6 +78,56 @@ def _convert_operator(desc):
         'operator': operator,
         'operator:wikidata': operator_wikidata
     }
+
+
+# https://wiki.openstreetmap.org/wiki/Key:socket
+_SOCKETS = {
+    'CCS': ('type2_combo', None),
+    'CHAdeMO': ('chademo', None),
+    'Haushaltsteckdose CH': ('sev1011_t13', 230),
+    'Haushaltsteckdose Schuko': ('schuko', 230),
+    'IEC 60309': ('cee_blue', 230),
+    'Kabel Typ 1': ('type1_cable', None),
+    'Kabel Typ 2': ('type2_cable', None),
+    'Steckdose Typ 2': ('type2', None),
+    'Steckdose Typ 3': ('type3', None),
+    'Tesla': ('tesla_standard', None),  # TODO: are these 'tesla_supercharger'?
+}
+
+
+def _convert_socket(desc):
+    num_sockets, max_output, max_voltage = {}, {}, {}
+    for table in desc.split('<table class="evse-overview')[1:]:
+        for tr in table.split('</table>')[0].split('</tr>')[1:]:
+            m = re.search(r'<td>\s*(.+?)\s*<', tr)
+            if not m:
+                continue
+            socket, voltage = _SOCKETS.get(m.group(1), ('unknown', None))
+            m = re.search(r'\s([0-9\.]+)\s*kW', tr)
+            if m:
+                output = float(m.group(1))
+                if socket == 'sev1011_t13':
+                    # 230 V * 16 A = 3.68 kW
+                    if output > 2.3 and output <= 3.7:
+                        socket, voltage = 'sev1011_t23', 230
+                    # 400 V * 16 A = 6.4 kW
+                    if output > 3.7:
+                        socket, output, voltage = 'sev1011_t25', min(output, 6.4), 400
+                max_output[socket] = max(max_output.get(socket, 0.0), output)
+            num_sockets[socket] = num_sockets.get(socket, 0) + 1
+            if voltage:
+                max_voltage[socket] = max(max_voltage.get(socket, 0), voltage)
+    tags = {}
+    for socket, count in num_sockets.items():
+        tags['socket:%s' % socket] = str(count)
+        output = max_output.get(socket, 0.0)
+        if output > 0.0:
+            output = str(int(output)) if output == int(output) else str(output)
+            tags['socket:%s:output' % socket] = '%s kW' % output
+        voltage = max_voltage.get(socket, 0)
+        if voltage > 0:
+            tags['socket:%s:voltage' % socket] = str(voltage)
+    return tags
 
 
 def _convert_addr(desc):
