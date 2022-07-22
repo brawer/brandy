@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Fust, Swiss retail chain
+# https://www.wikidata.org/wiki/Q1227164
 
 import html, json, re, requests
 

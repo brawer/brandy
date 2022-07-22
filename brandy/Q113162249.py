@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Swisscharge, charging stations for electric vehicles
+# https://www.wikidata.org/wiki/Q113162249
 
 import json
 import ch_bfe_charging_stations

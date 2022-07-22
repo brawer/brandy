@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Mobility, car sharing in Switzerland
+# https://www.wikidata.org/wiki/Q692400
 
 import csv, ftplib, io, json, re
 
