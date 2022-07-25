@@ -51,8 +51,9 @@ def _convert(feed_json):
             'ref': _convert_ref(f['id'])
         }
         props.update(_convert_operator(desc))
-        props.update(_convert_socket(desc))
+        props.update(_convert_access(desc))
         props.update(_convert_addr(desc))
+        props.update(_convert_socket(desc))
         features.append({
             'type': 'Feature',
             'geometry': f['geometry'],
@@ -63,6 +64,24 @@ def _convert(feed_json):
         'type': 'FeatureCollection',
         'features': features
     }
+
+
+def _convert_access(desc):
+    m = re.search(r'<td class=\"[^"]*\">Zugang</td>\s+<td>(.+?)</', desc)
+    if not m:
+        return {}
+    # As of July 2022, the upstream feed contains contradicting access info
+    # such as "Eingeschränkt zugänglich, Öffentlich zugänglich".
+    # We want to return the most restrictive of such tags, so the order
+    # of tests matter here (should be from most to least restrictive).
+    s = {s.strip() for s in m.group(1).split(',')}
+    if 'Keine Angabe' in s:
+        return {'access': 'unknown'}
+    if 'Eingeschränkt zugänglich' in s:
+        return {'access': 'limited'}
+    if 'Öffentlich zugänglich' in s:
+        return {'access': 'permissive'}
+    return {}
 
 
 def _convert_operator(desc):
