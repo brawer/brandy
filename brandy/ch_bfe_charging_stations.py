@@ -37,6 +37,7 @@ def _fetch():
 
 _OPERATORS = {
     'https://www.ecarup.com/': ('Q113192759', 'eCarUp'),
+    'https://www.evpass.ch/': ('Q113270804', 'evpass'),
     'https://www.swisscharge.ch/': ('Q113162249', 'Swisscharge'),
 }
 
