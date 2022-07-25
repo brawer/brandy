@@ -95,7 +95,7 @@ _SOCKETS = {
     'Kabel Typ 2': ('type2_cable', None),
     'Steckdose Typ 2': ('type2', None),
     'Steckdose Typ 3': ('type3', None),
-    'Tesla': ('tesla_standard', None),  # TODO: are these 'tesla_supercharger'?
+    'Tesla': ('tesla_supercharger', None),
 }
 
 
