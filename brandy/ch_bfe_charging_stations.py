@@ -39,6 +39,7 @@ _OPERATORS = {
     'https://www.ecarup.com/': ('Q113192759', 'eCarUp'),
     'https://www.evpass.ch/': ('Q113270804', 'evpass'),
     'https://www.swisscharge.ch/': ('Q113162249', 'Swisscharge'),
+    'https://www.tesla.com/de_CH/supercharger': ('Q17089620', 'Tesla Supercharger'),
 }
 
 
