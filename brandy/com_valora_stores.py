@@ -31,14 +31,15 @@ _BRANDS = {
     'Back-Factory': Brand('Back-Factory', 'Q21200483', _BAKERY),
     'Backwerk': Brand('BackWerk', 'Q798298', _BAKERY),
     'Brezelkönig': Brand('Brezelkönig', 'Q111728604', _PRETZEL),
+    'Cigo': Brand('Cigo', 'Q113290782', _NEWSAGENT),
     'Ditsch': Brand('Ditsch', 'Q911573', _BAKERY),
     'k kiosk': Brand('k kiosk', 'Q60381703', _KIOSK),
     'Press & Books': Brand('Press & Books', 'Q100407277', _NEWSAGENT),
     'ServiceStoreDB': Brand('ServiceStore DB', 'Q84482517', _CONVENIENCE),
     'Spettacolo': Brand('Caffè Spettacolo', 'Q111728781', _COFFEE_SHOP),
-	'U-Store': Brand('U-Store', 'Q113290511', _CONVENIENCE),
+    'U-Store': Brand('U-Store', 'Q113290511', _CONVENIENCE),
 }
-_BRANDS['avec.'] = _BRANDS['k kiosk']
+_BRANDS['avec.'] = _BRANDS['avec']
 _BRANDS['kkiosk'] = _BRANDS['k kiosk']
 
 
