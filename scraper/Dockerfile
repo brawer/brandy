@@ -1,0 +1,8 @@
+FROM python:3.10-alpine
+
+COPY scraper /brandy/scraper
+WORKDIR /brandy
+RUN python3 -m pip install -r scraper/requirements.txt
+RUN python3 -m unittest scraper/*_test.py
+
+CMD ["/bin/sh"]
