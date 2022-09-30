@@ -1,5 +1,6 @@
 *~
 *.pyc
-public_html
+cache
+keys
 venv
 
