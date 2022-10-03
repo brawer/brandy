@@ -5,8 +5,10 @@
 
 FROM python:3.10-alpine
 
-LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.description Scraper for quality assurance of brand stores in OpenStreetMap
+LABEL org.opencontainers.image.licenses MIT
 LABEL org.opencontainers.image.source https://github.com/brawer/brandy
+LABEL org.opencontainers.image.title Brandy Scraper
 
 COPY scraper /brandy/scraper
 WORKDIR /brandy
