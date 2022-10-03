@@ -15,6 +15,13 @@ jobs:
       - name: Run unit tests
         run: |
           python3 -m unittest scraper/*_test.py
+
+  package:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v3
       - name: Find container metadata
         id: container-metadata
         uses: docker/metadata-action@v4
@@ -26,5 +33,4 @@ jobs:
           layers: false
           tags: ${{ steps.container-metadata.outputs.tags }}
           labels: ${{ steps.container-metadata.outputs.labels }}
-          containerfiles: |
-            scraper/Containerfile
+          containerfiles: scraper/Containerfile
