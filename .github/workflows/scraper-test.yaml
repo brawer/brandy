@@ -48,7 +48,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - name: Debug some variables
-        run: echo "Tags: ${{ steps.build-image.outputs.tags }}"
+        run: |
+          echo 'User: ${{ github.actor }}'
+          echo 'Tags: ${{ steps.build-image.outputs.tags }}'
       - name: Push to GitHub Container Registry
         id: push-to-github
         uses: redhat-actions/push-to-registry@v2
