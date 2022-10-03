@@ -32,7 +32,7 @@ jobs:
         id: container-metadata
         uses: docker/metadata-action@v4
         with:
-          images: brandy/scraper
+          images: brawer/brandy/scraper
       - name: Build container image
         id: build-image
         uses: redhat-actions/buildah-build@v2
