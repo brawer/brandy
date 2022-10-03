@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Containerfile for building a container image with the Brandy webserver
+
+FROM python:3.10-alpine
+
+COPY webserver /brandy/webserver
+WORKDIR /brandy/webserver
+RUN python3 -m pip install -r requirements.txt
+
+EXPOSE 8080
+
+CMD ["waitress-serve", "--host", "0.0.0.0", "--call", "brandy:create_app"]
+
