@@ -43,7 +43,6 @@ jobs:
           containerfiles: scraper/Containerfile
       - name: Debug some variables
         run: |
-          echo 'User:   ${{ github.actor }}'
           echo 'Tags:   ${{ steps.container-metadata.outputs.tags }}'
           echo 'Labels: ${{ steps.container-metadata.outputs.labels }}'
       - name: Log in to GitHub Container Registry
