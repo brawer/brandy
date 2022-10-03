@@ -3,6 +3,7 @@
 #
 # GitHub action to delete unused containers from the GitHub container registry
 
+name: Clean up containers
 on:
   schedule:
     - cron: '39 17 * * *'  # every day at 17:39
