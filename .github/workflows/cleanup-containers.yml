@@ -16,7 +16,7 @@ jobs:
       - name: Delete old images
         uses: snok/container-retention-policy@v1
         with:
-          image-names: ghcr.io/brawer/brandy/scraper
+          image-names: ghcr.io/brawer/brandy/*
           cut-off: One day ago UTC
           keep-at-least: 1
           account-type: personal
