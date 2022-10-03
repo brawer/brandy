@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# GitHub action to test and package webserver
+
+name: Test and package webserver
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r webserver/requirements.txt
+          python -m pip install pytest
+      - name: Run unit tests
+        run: pytest webserver/
+
+  package:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v3
+      - name: Find container metadata
+        id: container-metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/brawer/brandy/brandy-webserver
+      - name: Build container image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          layers: false
+          tags: ${{ steps.container-metadata.outputs.tags }}
+          labels: ${{ steps.container-metadata.outputs.labels }}
+          containerfiles: webserver/Containerfile
+      - name: Push to GitHub Container Registry
+        id: push-to-github
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ghcr.io/brawer/brandy/brandy-webserver
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
