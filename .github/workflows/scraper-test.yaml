@@ -1,4 +1,4 @@
-name: Test scrapers
+name: Test and package scrapers
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,16 @@ jobs:
       - name: Run unit tests
         run: |
           python3 -m unittest scraper/*_test.py
+      - name: Find container metadata
+        id: container-metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: scraper
+      - name: Build container
+        uses: redhat-actions/buildah-build@v2
+        with:
+          layers: false
+          tags: ${{ steps.container-metadata.outputs.tags }}
+          labels: ${{ steps.container-metadata.outputs.labels }}
+          containerfiles: |
+            scraper/Containerfile
