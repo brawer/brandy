@@ -6,6 +6,7 @@
 FROM python:3.10-alpine
 
 LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.source https://github.com/brawer/brandy
 
 COPY scraper /brandy/scraper
 WORKDIR /brandy
