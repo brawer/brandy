@@ -5,6 +5,8 @@
 
 FROM python:3.10-alpine
 
+LABEL org.opencontainers.image.licenses=MIT
+
 COPY scraper /brandy/scraper
 WORKDIR /brandy
 RUN python3 -m pip install -r scraper/requirements.txt
