@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# GitHub action to delete unused containers from the GitHub container registry
+
+on:
+  schedule:
+    - cron: '39 17 * * *'  # every day at 17:39
+
+jobs:
+  clean-ghcr:
+    name: Delete old unused container images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old images
+        uses: snok/container-retention-policy@v1
+        with:
+          image-names: ghcr.io/brawer/brandy/scraper
+          cut-off: One day ago UTC
+          keep-at-least: 1
+          account-type: personal
+          untagged-only: true
+          token: ${{ github.token }}
