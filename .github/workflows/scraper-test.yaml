@@ -32,7 +32,7 @@ jobs:
         id: container-metadata
         uses: docker/metadata-action@v4
         with:
-          images: brawer/brandy/scraper
+          images: brandy/scraper
       - name: Build container image
         id: build-image
         uses: redhat-actions/buildah-build@v2
@@ -41,6 +41,12 @@ jobs:
           tags: ${{ steps.container-metadata.outputs.tags }}
           labels: ${{ steps.container-metadata.outputs.labels }}
           containerfiles: scraper/Containerfile
+      - name: Log in to GitHub Container Registry
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ghcr.io/${{ github.repository_owner }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       - name: Push to GitHub Container Registry
         id: push-to-github
         uses: redhat-actions/push-to-registry@v2
