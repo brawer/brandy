@@ -41,7 +41,7 @@ jobs:
           tags: ${{ steps.container-metadata.outputs.tags }}
           labels: ${{ steps.container-metadata.outputs.labels }}
           containerfiles: scraper/Containerfile
-      - name: Debug some variables
+      - name: Print variables for debugging
         run: |
           echo 'Tags:   ${{ steps.container-metadata.outputs.tags }}'
           echo 'Labels: ${{ steps.container-metadata.outputs.labels }}'
