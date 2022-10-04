@@ -44,16 +44,17 @@ def upload():
         num_features = len(data['features'])
         error_log = flask.request.form['error_log']
         db = get_db()
-        scrape = db.execute(
+        cursor = db.cursor()
+        cursor.execute(
             'INSERT INTO scrape (scraper, num_features, error_log)'
-            ' VALUES (?, ?, ?)'
-            ' RETURNING id',
+            ' VALUES (?, ?, ?)',
             (scraper, num_features, error_log)
-        ).fetchone()
+        )
+        id = cursor.lastrowid
         db.commit()
-        loc = flask.url_for('scrapes.scrape', id=scrape['id'])
+        loc = flask.url_for('scrapes.scrape', id=id)
         html = flask.render_template('scrapes/upload_created.html',
-                                     scrape=scrape, location=loc)
+                                     scrape={'id': id}, location=loc)
         r = flask.Response(html, status=201)
         r.headers['Location'] = loc
         return r
