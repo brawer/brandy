@@ -4,7 +4,12 @@
  * Test data for Brandy unittests
  */
 
-INSERT INTO scrape (id, scraper, num_features, error_log)
+INSERT INTO scraper (id, name)
 VALUES
-  (17, 'Q860_foobar.py', 821, ""),
-  (23, 'Q1568346_test.py', 0, "error log");
+  (1, 'Q860_foobar.py'),
+  (2, 'Q1568346_test.py');
+
+INSERT INTO scrape (id, scraper_id, num_features, error_log)
+VALUES
+  (17, 1, 821, ""),
+  (23, 2, 0, "error log");

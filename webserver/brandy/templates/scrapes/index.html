@@ -18,7 +18,7 @@
       <td><a href="{{ url_for('scrapes.scrape', id=scrape['id']) }}">{{
         scrape['scraped'].strftime('%Y-%m-%dT%H:%M:%SZ')
       }}</a></td>
-      <td>{{ scrape['scraper'] }}</td>
+      <td>{{ scrape['scraper_name'] }}</td>
     </tr>
     {% endfor %}
   </table>

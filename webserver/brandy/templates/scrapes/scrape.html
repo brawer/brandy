@@ -9,7 +9,7 @@
 
 {% block content %}
 <div>Scraped: {{ scrape['scraped'].strftime('%Y-%m-%dT%H:%M:%SZ') }}</div>
-<div>Scraper: <a href="https://github.com/brawer/brandy/blob/main/scraper/{{ scrape.scraper }}">{{ scrape.scraper }}</a></div>
+<div>Scraper: <a href="https://github.com/brawer/brandy/blob/main/scraper/{{ scrape.scraper_name }}">{{ scrape.scraper_name }}</a></div>
 <div>NumFeatures: {{ scrape.num_features }}</div>
 
 {% if scrape.error_log %}

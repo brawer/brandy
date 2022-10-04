@@ -48,11 +48,31 @@ def test_scrape_upload_post(client, app):
         in html
     with app.app_context():
         row = get_db().execute(
-            'SELECT scraper, num_features, error_log'
+            'SELECT scraper_id, scraper.name as scraper_name, num_features, error_log'
             ' FROM scrape'
-            ' WHERE id = 24',
+			' INNER JOIN scraper ON scraper_id = scraper.id'
+            ' WHERE scrape.id = 24',
         ).fetchone()
     assert row is not None
-    assert row['scraper'] == 'Q1227164_fust.py'
+    assert row['scraper_id'] == 3
+    assert row['scraper_name'] == 'Q1227164_fust.py'
     assert row['num_features'] == 3
     assert row['error_log'] == 'log\nwith multiple lines and "quotes"'
+
+    # Upload another scrape. Same scraper, different data.
+    response = client.post('/scrapes/upload', data={
+      'scraper': 'Q1227164_fust.py',
+      'data': '{"type": "FeatureCollection", "features": [{}]}',
+      'error_log': ''
+    })
+    assert response.status_code == 201
+    assert response.headers['Location'] == '/scrapes/25/'
+    with app.app_context():
+        row = get_db().execute(
+            'SELECT scraper_id, num_features'
+            ' FROM scrape'
+			' INNER JOIN scraper ON scraper_id = scraper.id'
+            ' WHERE scrape.id = 25',
+        ).fetchone()
+    assert row['scraper_id'] == 3
+    assert row['num_features'] == 1
