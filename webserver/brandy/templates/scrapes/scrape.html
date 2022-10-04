@@ -1,0 +1,20 @@
+{# SPDX-License-Identifier: MIT
+ # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+ #
+ # Template for rendering a single scrape, such as /scrapes/789/
+ #}
+{% extends 'base.html' %}
+{% block title %}Brandy: Scrape {{ scrape.id }}{% endblock %}
+{% block header %}Scrape {{scrape.id }}{% endblock %}
+
+{% block content %}
+<div>Scraped: {{ scrape['scraped'].strftime('%Y-%m-%dT%H:%M:%SZ') }}</div>
+<div>Scraper: <a href="https://github.com/brawer/brandy/blob/main/scraper/{{ scrape.scraper }}">{{ scrape.scraper }}</a></div>
+<div>NumFeatures: {{ scrape.num_features }}</div>
+
+{% if scrape.error_log %}
+<h2>Error log</h2>
+<div class="error_log">{{ scrape.error_log }}</div>
+{% endif %}
+
+{% endblock %}

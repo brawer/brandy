@@ -1,0 +1,34 @@
+{# SPDX-License-Identifier: MIT
+ # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+ #
+ # Template for rendering GET /scrapes/upload
+ #}
+{% extends 'base.html' %}
+{% block title %}Brandy: Upload Scrape{% endblock %}
+{% block header %}Upload Scrape{% endblock %}
+
+{% block content %}
+<div>
+<form method="post">
+  <div>
+    <label for="scraper">Scraper:</label>
+    <input name="scraper" id="scraper" value="Q1568346_test.py" required></input>
+  </div>
+  <div>
+    <label for="data">Data:</label>
+    <textarea name="data" id="data">{
+  "type": "FeatureCollection",
+  "features": [
+  ]
+}</textarea>
+  </div>
+  <div>
+    <label for="error_log">Error log:</label>
+    <textarea name="error_log" id="error_log"></textarea>
+  </div>
+  <div>
+    <input type="submit" value="Upload">
+  </div>
+</form>
+</div>
+{% endblock %}
