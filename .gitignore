@@ -4,6 +4,7 @@
 *~
 *.pyc
 cache
+instance
 keys
 venv
 
