@@ -16,14 +16,14 @@ CREATE TABLE scraper (
 CREATE TABLE scrape (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   scraped TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  scraper_id INT NOT NULL,
-  num_features INT NOT NULL,
+  scraper_id INTEGER NOT NULL,
+  num_features INTEGER NOT NULL,
   error_log TEXT,
   FOREIGN KEY (scraper_id) REFERENCES scraper (id)
 );
 
 CREATE TABLE brand (
   wikidata_id INT8 PRIMARY KEY NOT NULL,
-  last_scrape_id INT NOT NULL,
+  last_scrape_id INTEGER NOT NULL,
   FOREIGN KEY (last_scrape_id) REFERENCES scrape (id)
 );
