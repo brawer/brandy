@@ -4,4 +4,5 @@
 # Python requirements for the Brandy webserver
 
 flask >= 2.2.2
+flask-httpauth >= 4.7
 waitress >= 2.1.2

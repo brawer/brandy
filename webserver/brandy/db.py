@@ -45,16 +45,21 @@ def init_db_command():
     click.echo('Initialized the database.')
 
 
+def create_user(username, password, is_admin=False):
+    password_hash = generate_password_hash(password)
+    db = get_db()
+    db.execute('INSERT INTO user (username, password, is_admin)'
+               ' VALUES (?, ?, ?)',
+               (username, password_hash, (1 if is_admin else 0)))
+    db.commit()
+
+
 @click.command('add-admin')
 def add_admin_command():
     """Add a new administrator to the users table."""
     db = get_db()
     username = input('Choose username: ').strip()
     assert re.match(r'^[a-zA-Z]+$', username)
-    password_hash = generate_password_hash(
-        getpass.getpass('Choose password: '))
-    db.execute('INSERT INTO user (username, password, is_admin)'
-               ' VALUES (?, ?, ?)',
-               (username, password_hash, 1))
-    db.commit()
+    password = getpass.getpass('Choose password: ')
+    create_user(username, password, is_admin=True)
     click.echo('Created user \"%s\" with admin rights.' % username)
