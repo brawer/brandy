@@ -5,11 +5,11 @@ import pytest
 
 from brandy.geometry import bbox
 
-def test_bbox():
+def test_bbox_for_geometry():
     assert bbox({
         'type': 'Point',
-		'coordinates': [8, 47]
-	}) == (8, 47, 8, 47)
+        'coordinates': [8, 47]
+    }) == (8, 47, 8, 47)
 
     assert bbox({
          'type': 'LineString',
@@ -103,9 +103,54 @@ def test_bbox():
     assert bbox({
         'type': 'GeometryCollection',
         'geometries': []
-	}) == None
+    }) == None
 
-    assert bbox({'type': 'Unsupported geometry type'}) == None
+
+def test_bbox_for_feature():
+    assert bbox({'type': 'Feature'}) == None
+    assert bbox({
+        'type': 'Feature',
+        'geometry': {
+            'type': 'Polygon',
+            'coordinates': [
+               [
+                   [-10.0, -10.0],
+                   [10.0, -10.0],
+                   [10.0, 10.0],
+                   [-10.0, -10.0]
+               ]
+           ]
+       }
+    }) == (-10.0, -10.0, 10.0, 10.0)
+
+
+def test_bbox_for_feature_collection():
+    assert bbox({
+        'type': 'FeatureCollection',
+        'features': [{
+            'type': 'Feature',
+            'geometry': {'type': 'Point', 'coordinates': [101.0, 0.5]},
+            'properties': {'prop0': 'value0'}
+        }, {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'LineString',
+                'coordinates': [
+                    [102.0, 0.0],
+                    [103.0, 1.0],
+                    [104.0, 7.7],
+                    [105.0, 1.0]
+                ]
+            }
+        }]
+    }) == (101.0, 0.0, 105.0, 7.7)
+    assert bbox({'type': 'FeatureCollection'}) == None
+    assert bbox({'type': 'FeatureCollection', 'features': []}) == None
+    assert bbox({'type': 'FeatureCollection', 'features': None}) == None
+
+
+def test_bbox_for_junk():
+    assert bbox({'type': 'Unsupported type'}) == None
     assert bbox({}) == None
     assert bbox(None) == None
     assert bbox([]) == None
