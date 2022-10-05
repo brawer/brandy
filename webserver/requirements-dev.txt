@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Python requirements for developing and testing the Brandy webserver.
+# Any dependencies for running Brandy in production are not listed here,
+# but in `requirements.txt`.
+
+pytest >= 7.1.3
+
