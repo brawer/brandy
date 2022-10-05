@@ -1,10 +1,13 @@
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
 
+import getpass
+import re
 import sqlite3
 
 import click
 from flask import current_app, g
+from werkzeug.security import generate_password_hash
 
 
 def get_db():
@@ -32,6 +35,7 @@ def init_db():
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(add_admin_command)
 
 
 @click.command('init-db')
@@ -39,3 +43,18 @@ def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
     click.echo('Initialized the database.')
+
+
+@click.command('add-admin')
+def add_admin_command():
+    """Add a new administrator to the users table."""
+    db = get_db()
+    username = input('Choose username: ').strip()
+    assert re.match(r'^[a-zA-Z]+$', username)
+    password_hash = generate_password_hash(
+        getpass.getpass('Choose password: '))
+    db.execute('INSERT INTO user (username, password, is_admin)'
+               ' VALUES (?, ?, ?)',
+               (username, password_hash, 1))
+    db.commit()
+    click.echo('Created user \"%s\" with admin rights.' % username)

@@ -4,9 +4,17 @@
  * Database schema for Brandy webserver
  */
 
+DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS scrape;
 DROP TABLE IF EXISTS scraper;
 DROP TABLE IF EXISTS brand;
+
+CREATE TABLE user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  is_admin TINYINT NOT NULL DEFAULT 0
+);
 
 CREATE TABLE scraper (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
