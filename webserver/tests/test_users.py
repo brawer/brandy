@@ -65,12 +65,12 @@ class TestUser:
         r = client.get('/users/bob/', headers=basic_auth('root'))
         assert r.status_code == HTTPStatus.OK
 
-    def test_user_forbidden(self, basic_auth, client):
+    def test_forbidden(self, basic_auth, client):
         # Alice should be denied getting /users/bob/.
         r = client.get('/users/bob/', headers=basic_auth('alice'))
         assert r.status_code == HTTPStatus.FORBIDDEN
 
-    def test_user_unauthorized(self, basic_auth, client):
+    def test_unauthorized(self, basic_auth, client):
         r = client.get('/users/bob/')
         assert r.status_code == HTTPStatus.UNAUTHORIZED
         assert r.headers['WWW-Authenticate'].startswith('Basic')
