@@ -49,5 +49,24 @@ def test_index_unknown_user(client):
 
 
 def test_user(client, users):
-    r = client.get('/users/alice/', headers=basic_auth('root', 'rootpass'))
+    # TODO: Bob should be allowed getting /users/bob/ (his own info).
+    r = client.get('/users/bob/', headers=basic_auth('bob', 'bassword'))
+    assert r.status_code == HTTPStatus.FORBIDDEN  # TODO: Allow Bob to get it.
+
+
+def test_user_admin(client, users):
+    # Root should be allowed getting /users/bob/.
+    r = client.get('/users/bob/', headers=basic_auth('root', 'rootpass'))
     assert r.status_code == HTTPStatus.OK
+
+
+def test_user_forbidden(client, users):
+    # Alice should be denied getting /users/bob/.
+    r = client.get('/users/bob/', headers=basic_auth('alice', 'wonderland'))
+    assert r.status_code == HTTPStatus.FORBIDDEN
+
+
+def test_user_unauthorized(client, users):
+    r = client.get('/users/bob/')
+    assert r.status_code == HTTPStatus.UNAUTHORIZED
+    assert r.headers['WWW-Authenticate'].startswith('Basic')
