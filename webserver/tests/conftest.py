@@ -14,7 +14,7 @@ with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
 
 @pytest.fixture
 def app():
-    # Useing a sqlite3 in-memory database (":memory:) would be faster,
+    # Using a sqlite3 in-memory database (":memory:") would be faster,
     # but Flask does not make this easy; beware of threading issues.
     # https://gehrcke.de/2015/05/in-memory-sqlite-database-and-flask-a-threading-trap/
     db_fd, db_path = tempfile.mkstemp()
