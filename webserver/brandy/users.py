@@ -5,8 +5,9 @@
 
 import flask
 import json
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import Forbidden, NotFound
 
+import brandy.auth
 from brandy.auth import auth
 from brandy.db import get_db
 
@@ -24,8 +25,12 @@ def index():
 
 
 @bp.route('/<username>/')
-@auth.login_required(role='admin')
+@auth.login_required()
 def user(username):
+    cur_user = auth.current_user()
+    admin = 'admin' in brandy.auth.get_user_roles(cur_user)
+    if cur_user != username and not admin:
+        raise Forbidden()
     db = get_db()
     user = db.execute(
         'SELECT id, username, is_admin FROM user WHERE username = ?',

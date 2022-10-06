@@ -56,9 +56,9 @@ class TestUser:
         return lambda u: basic_auth_header(u, users.get(u, ''))
 
     def test_user(self, basic_auth, client):
-        # TODO: Bob should be allowed getting /users/bob/ (his own info).
+        # Bob should be allowed getting /users/bob/ (his own info).
         r = client.get('/users/bob/', headers=basic_auth('bob'))
-        assert r.status_code == HTTPStatus.FORBIDDEN  # TODO: Allow Bob to get it.
+        assert r.status_code == HTTPStatus.OK
 
     def test_admin(self, basic_auth, client):
         # Root should be allowed getting /users/bob/.
