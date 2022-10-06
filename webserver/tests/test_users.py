@@ -16,17 +16,22 @@ def basic_auth(username, password):
     return {'Authorization': 'Basic %s' % cred}
 
 
-def test_index(client, app):
+@pytest.fixture
+def users(app):
+    p = {'root': 'rootpass', 'alice': 'wonderland', 'bob': 'bassword'}
     with app.app_context():
-        create_user('root', 'rootpass', is_admin=True)
+        for username, password in p.items():
+            create_user(username, password, is_admin=(username == 'root'))
+    return p
+
+
+def test_index(client, users):
     r = client.get('/users/', headers=basic_auth('root', 'rootpass'))
     assert r.status_code == HTTPStatus.OK
 
 
-def test_index_forbidden(client, app):
-    with app.app_context():
-        create_user('alice', 'secret', is_admin=False)
-    r = client.get('/users/', headers=basic_auth('alice', 'secret'))
+def test_index_forbidden(client, users):
+    r = client.get('/users/', headers=basic_auth('alice', 'wonderland'))
     assert r.status_code == HTTPStatus.FORBIDDEN
 
 
@@ -40,3 +45,8 @@ def test_index_unknown_user(client):
     r = client.get('/users/', headers=basic_auth('nosuchuser', 'secret'))
     assert r.status_code == HTTPStatus.UNAUTHORIZED
     assert r.headers['WWW-Authenticate'].startswith('Basic')
+
+
+def test_user(client, users):
+    r = client.get('/users/alice/', headers=basic_auth('root', 'rootpass'))
+    assert r.status_code == HTTPStatus.OK
