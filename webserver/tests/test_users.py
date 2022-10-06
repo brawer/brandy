@@ -22,6 +22,7 @@ def users(app):
     with app.app_context():
         for username, password in p.items():
             create_user(username, password, is_admin=(username == 'root'))
+        get_db().commit()
     return p
 
 

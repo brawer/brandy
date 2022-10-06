@@ -51,7 +51,6 @@ def create_user(username, password, is_admin=False):
     db.execute('INSERT INTO user (username, password, is_admin)'
                ' VALUES (?, ?, ?)',
                (username, password_hash, (1 if is_admin else 0)))
-    db.commit()
 
 
 @click.command('add-admin')
@@ -62,4 +61,5 @@ def add_admin_command():
     assert re.match(r'^[a-zA-Z]+$', username)
     password = getpass.getpass('Choose password: ')
     create_user(username, password, is_admin=True)
+    db.commit()
     click.echo('Created user \"%s\" with admin rights.' % username)
