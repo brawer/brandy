@@ -20,8 +20,11 @@ def app():
     db_fd, db_path = tempfile.mkstemp()
 
     app = create_app({
-        'TESTING': True,
+        'APPLICATION_ROOT': 't',
         'DATABASE': db_path,
+        'PREFERRED_URL_SCHEME': 'https',
+        'TESTING': True,
+        'SERVER_NAME': 'brandy.test'
     })
 
     with app.app_context():

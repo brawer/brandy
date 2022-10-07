@@ -42,9 +42,9 @@ def test_scrape_upload_post(client, app):
       'error_log': 'log\nwith multiple lines and "quotes"'
     })
     assert response.status_code == 201
-    assert response.headers['Location'] == '/scrapes/24/'
+    assert response.headers['Location'] == '/t/scrapes/24/'
     html = response.get_data(as_text=True)
-    assert '<meta http-equiv="refresh" content="0; url=\'/scrapes/24/\'" />' \
+    assert '<meta http-equiv="refresh" content="0; url=\'/t/scrapes/24/\'" />' \
         in html
     with app.app_context():
         row = get_db().execute(
@@ -66,7 +66,7 @@ def test_scrape_upload_post(client, app):
       'error_log': ''
     })
     assert response.status_code == 201
-    assert response.headers['Location'] == '/scrapes/25/'
+    assert response.headers['Location'] == '/t/scrapes/25/'
     with app.app_context():
         row = get_db().execute(
             'SELECT scraper_id, num_features'

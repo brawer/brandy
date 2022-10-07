@@ -32,6 +32,9 @@ CREATE TABLE scrape (
 
 CREATE TABLE brand (
   wikidata_id INT8 PRIMARY KEY NOT NULL,
-  last_scrape_id INTEGER NOT NULL,
-  FOREIGN KEY (last_scrape_id) REFERENCES scrape (id)
+  scraped TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  min_lng_e7 INTEGER NOT NULL,
+  min_lat_e7 INTEGER NOT NULL,
+  max_lng_e7 INTEGER NOT NULL,
+  max_lat_e7 INTEGER NOT NULL
 );
