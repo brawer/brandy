@@ -2,8 +2,11 @@
 # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
 
 *~
+*.egg-info
 *.pyc
+build
 cache
+dist
 instance
 keys
 venv

@@ -2,14 +2,33 @@
 # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
 #
 # Containerfile for building a container image with the Brandy webserver
+#
+# To run the production container, a persistent directory should be
+# mounted to this mount point: /usr/local/var/brandy-instance
+# This directory is used for all persistent data files including the
+# server’s SQLite databse.
+#
+# The container is produces in a a multi-stage build. Inside the "builder"
+# container, we set up a developemtn environment, run unittests and package
+# the webserver as a wheel file (a form of Python distribution).
+#
+# In the final production container, we install the previously built wheel.
+# Therefore, the build production container does not contain any tests
+# or development tools. This reduces the container’s attack surface.
+# (The space savings are only marginal because our app is quite small.)
+
+FROM python:3.10-alpine AS builder
+COPY . /brandy
+WORKDIR /brandy/webserver
+RUN apk add git && \
+    python3 -m pip install -r requirements.txt -r requirements-dev.txt
+RUN pytest
+RUN python3 setup.py bdist_wheel
 
 FROM python:3.10-alpine
-
-COPY webserver /brandy/webserver
 WORKDIR /brandy/webserver
-RUN python3 -m pip install -r requirements.txt
+COPY --from=builder /brandy/webserver/dist dist
+RUN pip install dist/*.whl && rm -rf dist
 
 EXPOSE 8080
-
 CMD ["waitress-serve", "--host", "0.0.0.0", "--call", "brandy:create_app"]
-
