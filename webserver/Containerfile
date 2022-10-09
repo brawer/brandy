@@ -4,9 +4,8 @@
 # Containerfile for building a container image with the Brandy webserver
 #
 # To run the production container, a persistent directory should be
-# mounted to this mount point: /usr/local/var/brandy-instance
-# This directory is used for all persistent data files including the
-# server’s SQLite databse.
+# mounted into the container file system at /mnt/storage. This is used
+# for all persistent data files, including the server’s SQLite databse.
 #
 # The container is produces in a a multi-stage build. Inside the "builder"
 # container, we set up a developemtn environment, run unittests and package
@@ -28,7 +27,11 @@ RUN python3 setup.py bdist_wheel
 FROM python:3.10-alpine
 WORKDIR /brandy/webserver
 COPY --from=builder /brandy/webserver/dist dist
-RUN pip install dist/*.whl && rm -rf dist
+RUN \
+  pip install dist/*.whl && \
+  rm -rf dist && \
+  mkdir -p /usr/local/var && \
+  ln -s /mnt/storage /usr/local/var/brandy-instance
 
 EXPOSE 80
 CMD ["waitress-serve", "--host", "0.0.0.0", "--port", "80",  \
