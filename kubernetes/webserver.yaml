@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
+#
+# Kubernetes configuration to run the brandy webserver in production.
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brandy
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  - host: osmbrandy.tk
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: brandy
+            port:
+              number: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brandy
+  labels:
+    run: brandy
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app:  brandy
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brandy
+spec:
+  selector:
+    matchLabels:
+      app: brandy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: brandy
+    spec:
+      containers:
+      - name: nginx
+        image: ghcr.io/brawer/brandy/webserver:main
+        ports:
+        - containerPort: 80
