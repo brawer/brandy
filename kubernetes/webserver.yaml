@@ -12,7 +12,7 @@ metadata:
     kubernetes.io/ingress.class: "traefik"
 spec:
   rules:
-  - host: osmbrandy.tk
+  - host: brandy.brawer.tk
     http:
       paths:
       - path: /
