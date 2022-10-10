@@ -53,7 +53,14 @@ spec:
         app: brandy
     spec:
       containers:
-      - name: nginx
+      - name: webserver
         image: ghcr.io/brawer/brandy/webserver:main
         ports:
         - containerPort: 80
+        volumeMounts:
+        - mountPath: "/mnt/storage"
+          name: storage-volume
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: webserver-storage
