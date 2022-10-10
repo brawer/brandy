@@ -4,13 +4,33 @@
 # Kubernetes configuration to run the brandy webserver in production.
 
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: brandy-brawer-tk
+  namespace: default
+spec:
+  secretName: brandy-brawer-tk-tls
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  commonName: brandy.brawer.tk
+  dnsNames:
+  - brandy.brawer.tk
+
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: brandy
   annotations:
-    kubernetes.io/ingress.class: "traefik"
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
+  tls:
+    - secretName: brandy-brawer-tk-tls
+      hosts:
+        - brandy.brawer.tk
   rules:
   - host: brandy.brawer.tk
     http:
