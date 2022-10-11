@@ -84,3 +84,16 @@ spec:
         - name: storage-volume
           persistentVolumeClaim:
             claimName: webserver-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webserver-storage
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: do-block-storage
