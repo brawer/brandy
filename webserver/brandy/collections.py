@@ -7,16 +7,16 @@
 
 
 from datetime import datetime
+import hashlib
 from http import HTTPStatus
 import json
+import struct
 import time
+import zlib
 
 import flask
 from flask_accept import accept, accept_fallback
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
-
-import mmh3  # MurmurHash3, https://pypi.org/project/mmh3/
-import pyzstd  # Zstandard compression, https://pypi.org/project/pyzstd/
 
 import brandy.auth, brandy.geometry
 from brandy.auth import auth
@@ -134,7 +134,7 @@ def generate_brand_items_json(db, brand_id):
                 'type': 'Point',
                 'coordinates': [f['lng'], f['lat']]
             },
-            'properties': json.loads(pyzstd.decompress(f['props']))
+            'properties': json.loads(zlib.decompress(f['props']))
         }
         sep = '\n' if first else ',\n'
         first = False
@@ -168,8 +168,8 @@ def store_scraped(db, brand_id, scraped):
         feature_id = str(feature.get('id') or props['ref'])
         props_json = json.dumps(props, ensure_ascii=False,
                                 separators=(',', ':'), sort_keys=True)
-        props_compressed = pyzstd.compress(props_json.encode('utf-8'))
-        hash_hi, hash_lo = mmh3.hash64('%s%f%f%s' % (id, lng, lat, props_json))
+        props_compressed = zlib.compress(props_json.encode('utf-8'), level=9)
+        hash_hi, hash_lo = hash_blob('%s%f%f%s' % (id, lng, lat, props_json))
         feature_last_modified = now
         if feature_id in old:
             old_hash_hi, old_hash_lo, old_last_modified = old[feature_id]
@@ -194,3 +194,11 @@ def store_scraped(db, brand_id, scraped):
        'VALUES (?, ?, ?, ?, ?, ?, ?)',
         (brand_id, last_checked, last_modified,
          bbox[0], bbox[1], bbox[2], bbox[3]))
+
+
+def hash_blob(b):
+    # MurmurHash3 would probably be the better algorithm, but it is not
+    # packaged yet in Alpine Linux (which we run in production). We could
+    # set up a C compiler in our build, but that seems like overkill.
+    if type(b) == str: b = b.encode('utf-8')
+    return struct.unpack('>ll', hashlib.shake_128(b).digest(8))

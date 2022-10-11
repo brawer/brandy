@@ -6,6 +6,4 @@
 flask >= 2.2.2
 flask-accept >= 0.0.6
 flask-httpauth >= 4.7
-mmh3 >= 3.0.0
-pyzstd >= 0.15.3
 waitress >= 2.1.2
