@@ -4,9 +4,14 @@
 <html>
 <head>
   <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  {% block head %}{% endblock %}
 </head>
 <body>
-<h1>{% block header %}{% endblock %}</h1>
+<div class="topbar">
+{% block h1 %}{% endblock %}
+</div>
 {% block content %}{% endblock %}
 </body>
 </html>

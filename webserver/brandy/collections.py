@@ -86,9 +86,27 @@ def collection_json(brand_id):
 @bp.route('/Q<int:brand_id>-brand.html')
 @collection.support('text/html')
 def collection_html(brand_id):
-    _ = collection_json(brand_id)  # raises NotFound for unknown brands
-    resp = flask.Response(
-        '<html><body>TODO: Web page for Q%s</body></html>' % brand_id)
+    db = get_db()
+    brand = db.execute(
+        'SELECT last_checked, last_modified,'
+        '  min_lng, min_lat, max_lng, max_lat'
+        '  FROM brand WHERE wikidata_id = ?',
+        (brand_id,)).fetchone()
+    if brand == None:
+        raise NotFound()
+    rendered = flask.render_template('collections/map.html', data={
+        'bbox': [
+            brand['min_lng'], brand['min_lat'],
+            brand['max_lng'], brand['max_lat']
+        ],
+        'brand_id': 'Q%d' % brand_id,
+        'brand_name': 'Brand',
+        'last_checked': brand['last_checked'].isoformat() + 'Z',
+        'last_modified': brand['last_modified'].isoformat() + 'Z',
+        'items_url': flask.url_for('collections.items', _external=True,
+                                   brand_id=brand_id)
+    })
+    resp = flask.make_response(rendered)
     if not flask.request.path.endswith('.html'):
         resp.headers['Vary'] = 'Accept'
     return resp

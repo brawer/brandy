@@ -1,0 +1,26 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, sans;
+}
+
+html, body {
+	height: 100%;
+    margin: 0;
+}
+	  
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+h1 { margin: 4px 20px; }
+
+.topbar {
+	background-color: #f06;
+    height: 50px;
+	color: #fff;
+}
+
+#map {
+  flex-grow: 1;
+}
