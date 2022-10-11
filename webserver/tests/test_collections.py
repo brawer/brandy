@@ -42,9 +42,10 @@ Q72_scraped = {
     'features': [{
         'type': 'Feature',
         'geometry': {'type': 'Point', 'coordinates': [8.5, 47.6]},
-        'properties': {'brand:wikidata': 'Q72'}
+        'properties': {'brand:wikidata': 'Q72', 'ref': 'F1'}
     }, {
         'type': 'Feature',
+		'id': 'F2',
         'geometry': {'type': 'Point', 'coordinates': [8.6, 47.3]},
         'properties': {'brand:wikidata': 'Q72'}
     }]
@@ -67,6 +68,22 @@ Q72_collection = {
     }, {
         'rel': 'items',
         'href': 'https://brandy.test/t/collections/Q72-brand/items'
+    }]
+}
+
+
+Q72_brand_items = {
+    'type': 'FeatureCollection',
+    'features': [{
+        'type': 'Feature',
+		'id': 'F1',
+        'geometry': {'type': 'Point', 'coordinates': [8.5, 47.6]},
+        'properties': {'brand:wikidata': 'Q72', 'ref': 'F1'}
+    }, {
+        'type': 'Feature',
+		'id': 'F2',
+        'geometry': {'type': 'Point', 'coordinates': [8.6, 47.3]},
+        'properties': {'brand:wikidata': 'Q72'}
     }]
 }
 
@@ -134,6 +151,18 @@ class TestGetCollection:
 
     def test_html_not_found(self, client):
         r = client.get('/collections/Q404-brand.html')
+        assert r.status_code == HTTPStatus.NOT_FOUND
+
+
+class TestGetItems:
+    def test(self, q72, client):
+        r = client.get('/collections/Q72-brand/items')
+        assert r.status_code == HTTPStatus.OK
+        assert r.headers['Content-Type'] == 'application/geo+json'
+        assert r.json == Q72_brand_items
+
+    def test_not_found(self, client):
+        r = client.get('/collections/Q404-brand/items')
         assert r.status_code == HTTPStatus.NOT_FOUND
 
 

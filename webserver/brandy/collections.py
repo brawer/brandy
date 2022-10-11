@@ -6,12 +6,17 @@
 # We implement the OGC WFS 3.0 API, see https://ogcapi.ogc.org/features/.
 
 
-import flask
-from flask_accept import accept, accept_fallback
+from datetime import datetime
 from http import HTTPStatus
 import json
 import time
+
+import flask
+from flask_accept import accept, accept_fallback
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
+
+import mmh3  # MurmurHash3, https://pypi.org/project/mmh3/
+import pyzstd  # Zstandard compression, https://pypi.org/project/pyzstd/
 
 import brandy.auth, brandy.geometry
 from brandy.auth import auth
@@ -38,8 +43,8 @@ def collection_json(brand_id):
         raise NotFound()
     bbox = [
         brand['min_lng'], brand['min_lat'],
-		brand['max_lng'], brand['max_lat']
-	]
+        brand['max_lng'], brand['max_lat']
+    ]
     self_url = flask.url_for('collections.collection', _external=True,
                              brand_id=brand_id)
     items_url = flask.url_for('collections.items', _external=True,
@@ -54,12 +59,12 @@ def collection_json(brand_id):
                 'rel': 'self',
                 'href': self_url + '.json',
                 'type': 'application/json'
-			},
+            },
             {
                 'rel': 'alternate',
                 'href': self_url + '.html',
                 'type': 'text/html'
-			},
+            },
             {'rel': 'items', 'href': items_url}
         ]
     })
@@ -101,29 +106,91 @@ def items(brand_id):
         db.commit()
         return resp
 
-    return '''
-    <!doctype html>
-    <title>Upload</title>
-    <h1>Upload</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=scraped>
-      <input type=file name=log>
-      <input type=submit value=Upload>
-    </form>
-    ''', 404
-    raise NotFound()
+    brand = db.execute(
+        'SELECT last_modified FROM brand WHERE wikidata_id = ?',
+        (brand_id,)).fetchone()
+    if brand == None:
+        raise NotFound()
+    last_modified = brand['last_modified']
+    return generate_brand_items_json(db, brand_id), {
+        'Content-Type': 'application/geo+json',
+        'Last-Modified': last_modified.isoformat() + 'Z',
+    }
+
+
+@flask.stream_with_context
+def generate_brand_items_json(db, brand_id):
+    yield '{"type":"FeatureCollection","features":['
+    first = True
+    for f in db.execute(
+        'SELECT feature_id, lng, lat, props'
+        ' FROM brand_feature WHERE brand_id = ?',
+        (brand_id,)
+    ).fetchall():
+        feature = {
+            'type': 'Feature',
+            'id': f['feature_id'],
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [f['lng'], f['lat']]
+            },
+            'properties': json.loads(pyzstd.decompress(f['props']))
+        }
+        sep = '\n' if first else ',\n'
+        first = False
+        yield '%s%s' % (sep, json.dumps(feature))
+    yield ']}\n'
 
 
 def store_scraped(db, brand_id, scraped):
+    now = datetime.now()
     content = json.load(scraped)  # TODO: Use json_stream.
     bbox = brandy.geometry.bbox(content)
     if bbox == None:
         raise BadRequest()
     bbox = [float(c) for c in bbox]
+
+    old = {}
+    for f in db.execute(
+        'SELECT feature_id, hash_hi, hash_lo, last_modified'
+        ' FROM brand_feature WHERE brand_id = ?',
+        (brand_id,)
+    ).fetchall():
+        old[f['feature_id']] = (f['hash_hi'], f['hash_lo'], f['last_modified'])
+    last_modified = None
+
     db.execute('DELETE FROM brand WHERE wikidata_id = ?', (brand_id,))
+    db.execute('DELETE FROM brand_feature WHERE brand_id = ?', (brand_id,))
+    for feature in content['features']:
+        min_lng, min_lat, max_lng, max_lat = brandy.geometry.bbox(feature)
+        lng, lat = (min_lng + max_lng) / 2, (min_lat + max_lat) / 2
+        props = feature.get('properties', {})
+        feature_id = str(feature.get('id') or props['ref'])
+        props_json = json.dumps(props, ensure_ascii=False,
+                                separators=(',', ':'), sort_keys=True)
+        props_compressed = pyzstd.compress(props_json.encode('utf-8'))
+        hash_hi, hash_lo = mmh3.hash64('%s%f%f%s' % (id, lng, lat, props_json))
+        feature_last_modified = now
+        if feature_id in old:
+            old_hash_hi, old_hash_lo, old_last_modified = old[feature_id]
+            if hash_hi == old_hash_hi and hash_lo == old_hash_lo:
+                feature_last_modified = old_last_modified
+        if last_modified == None or last_modified < feature_last_modified:
+            last_modified = feature_last_modified
+        db.execute(
+            'INSERT INTO brand_feature ('
+            '    brand_id, feature_id, lng, lat,'
+            '    hash_hi, hash_lo, last_modified, props)'
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            (brand_id, feature_id, lng, lat, hash_hi, hash_lo, last_modified,
+             props_compressed))
+    last_checked = now
+    if last_modified == None:
+        last_modified = now
     db.execute(
         'INSERT INTO brand ('
-        '    wikidata_id, '
+        '    wikidata_id, last_checked, last_modified,'
         '    min_lng, min_lat, max_lng, max_lat)'
-        'VALUES (?, ?, ?, ?, ?)',
-        (brand_id, bbox[0], bbox[1], bbox[2], bbox[3]))
+       'VALUES (?, ?, ?, ?, ?, ?, ?)',
+        (brand_id, last_checked, last_modified,
+         bbox[0], bbox[1], bbox[2], bbox[3]))

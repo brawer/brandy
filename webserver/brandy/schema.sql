@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS scrape;
 DROP TABLE IF EXISTS scraper;
 DROP TABLE IF EXISTS brand;
+DROP TABLE IF EXISTS brand_feature;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,9 +33,21 @@ CREATE TABLE scrape (
 
 CREATE TABLE brand (
   wikidata_id INT8 PRIMARY KEY NOT NULL,
-  scraped TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  min_lng_e7 INTEGER NOT NULL,
-  min_lat_e7 INTEGER NOT NULL,
-  max_lng_e7 INTEGER NOT NULL,
-  max_lat_e7 INTEGER NOT NULL
+  last_checked TIMESTAMP NOT NULL,
+  last_modified TIMESTAMP,
+  min_lng REAL NOT NULL,
+  min_lat REAL NOT NULL,
+  max_lng REAL NOT NULL,
+  max_lat REAL NOT NULL
+);
+
+CREATE TABLE brand_feature (
+  brand_id INT8 NOT NULL,
+  feature_id TEXT NOT NULL,
+  lng REAL NOT NULL,
+  lat REAL NOT NULL,
+  hash_hi INT8 NOT NULL,
+  hash_lo INT8 NOT NULL,
+  last_modified TIMESTAMP NOT NULL,
+  props BLOB NOT NULL
 );
