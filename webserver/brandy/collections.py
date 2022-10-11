@@ -31,18 +31,15 @@ def collection(brand_id):
 def collection_json(brand_id):
     db = get_db()
     brand = db.execute(
-        'SELECT scraped, min_lng_e7, min_lat_e7, max_lng_e7, max_lat_e7'
+        'SELECT min_lng, min_lat, max_lng, max_lat'
         ' FROM brand WHERE wikidata_id = ?',
         (brand_id,)).fetchone()
     if brand == None:
         raise NotFound()
     bbox = [
-        round(float(brand['min_lng_e7']) * 1e-7, 7),
-        round(float(brand['min_lat_e7']) * 1e-7, 7),
-        round(float(brand['max_lng_e7']) * 1e-7, 7),
-        round(float(brand['max_lat_e7']) * 1e-7, 7)
-    ]
-    scraped = brand['scraped'].strftime('%Y-%m-%dT%H:%M:%SZ')
+        brand['min_lng'], brand['min_lat'],
+		brand['max_lng'], brand['max_lat']
+	]
     self_url = flask.url_for('collections.collection', _external=True,
                              brand_id=brand_id)
     items_url = flask.url_for('collections.items', _external=True,
@@ -122,11 +119,11 @@ def store_scraped(db, brand_id, scraped):
     bbox = brandy.geometry.bbox(content)
     if bbox == None:
         raise BadRequest()
-    bbox_e7 = [int(c * 1e7) for c in bbox]
+    bbox = [float(c) for c in bbox]
     db.execute('DELETE FROM brand WHERE wikidata_id = ?', (brand_id,))
     db.execute(
         'INSERT INTO brand ('
         '    wikidata_id, '
-        '    min_lng_e7, min_lat_e7, max_lng_e7, max_lat_e7)'
+        '    min_lng, min_lat, max_lng, max_lat)'
         'VALUES (?, ?, ?, ?, ?)',
-        (brand_id, bbox_e7[0], bbox_e7[1], bbox_e7[2], bbox_e7[3]))
+        (brand_id, bbox[0], bbox[1], bbox[2], bbox[3]))
