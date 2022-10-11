@@ -58,15 +58,15 @@ Q72_collection = {
     },
     'links': [{
         'rel': 'self',
-        'href': 'https://brandy.test/t/collections/Q72.json',
+        'href': 'https://brandy.test/t/collections/Q72-brand.json',
         'type': 'application/json'
     }, {
         'rel': 'alternate',
-        'href': 'https://brandy.test/t/collections/Q72.html',
+        'href': 'https://brandy.test/t/collections/Q72-brand.html',
         'type': 'text/html'
     }, {
         'rel': 'items',
-        'href': 'https://brandy.test/t/collections/Q72/items'
+        'href': 'https://brandy.test/t/collections/Q72-brand/items'
     }]
 }
 
@@ -75,27 +75,27 @@ Q72_collection = {
 def q72(basic_auth, client):
     scraped = io.BytesIO(json.dumps(Q72_scraped).encode('utf-8'))
     r = client.post(
-        '/collections/Q72/items', headers=basic_auth('testbot'),
+        '/collections/Q72-brand/items', headers=basic_auth('testbot'),
         data = {'scraped': (scraped, 's.json', 'application/geo+json')})
     assert r.status_code == HTTPStatus.CREATED
 
 
 class TestGetCollection:
     def test_json(self, q72, client):
-        r = client.get('/collections/Q72.json')
+        r = client.get('/collections/Q72-brand.json')
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'application/json'
         assert r.headers.get('Vary') == None
         assert r.json == Q72_collection
 
     def test_html(self, q72, client):
-        r = client.get('/collections/Q72.html')
+        r = client.get('/collections/Q72-brand.html')
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'text/html; charset=utf-8'
         assert r.headers.get('Vary') == None
 
     def test_accept_json(self, q72, client):
-        r = client.get('/collections/Q72',
+        r = client.get('/collections/Q72-brand',
                        headers={'Accept': 'application/json'})
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'application/json'
@@ -103,35 +103,37 @@ class TestGetCollection:
         assert r.json == Q72_collection
 
     def test_accept_html(self, q72, client):
-        r = client.get('/collections/Q72', headers={'Accept': 'text/html'})
+        r = client.get('/collections/Q72-brand',
+                       headers={'Accept': 'text/html'})
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'text/html; charset=utf-8'
         assert r.headers['Vary'] == 'Accept'
 
     def test_accept_default(self, q72, client):
-        r = client.get('/collections/Q72')
+        r = client.get('/collections/Q72-brand')
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'application/json'
         assert r.headers['Vary'] == 'Accept'
         assert r.json == Q72_collection
 
     def test_accept_fallback(self, q72, client):
-        r = client.get('/collections/Q72', headers={'Accept': 'image/png'})
+        r = client.get('/collections/Q72-brand',
+                       headers={'Accept': 'image/png'})
         assert r.status_code == HTTPStatus.OK
         assert r.headers['Content-Type'] == 'application/json'
         assert r.headers['Vary'] == 'Accept'
         assert r.json == Q72_collection
 
     def test_not_found(self, client):
-        r = client.get('/collections/Q404')
+        r = client.get('/collections/Q404-brand')
         assert r.status_code == HTTPStatus.NOT_FOUND
 
     def test_json_not_found(self, client):
-        r = client.get('/collections/Q404.json')
+        r = client.get('/collections/Q404-brand.json')
         assert r.status_code == HTTPStatus.NOT_FOUND
 
     def test_html_not_found(self, client):
-        r = client.get('/collections/Q404.html')
+        r = client.get('/collections/Q404-brand.html')
         assert r.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -139,17 +141,17 @@ class TestPostItems:
     def test(self, basic_auth, client):
         scraped = io.BytesIO(json.dumps(Q72_scraped).encode('utf-8'))
         r = client.post(
-            '/collections/Q72/items', headers=basic_auth('testbot'),
+            '/collections/Q72-brand/items', headers=basic_auth('testbot'),
             data = {'scraped': (scraped, 'file.json', 'application/geo+json')})
         assert (r.text, r.status_code) == ('Created', HTTPStatus.CREATED)
         assert r.headers['Location'] == \
-            'https://brandy.test/t/collections/Q72/items'
-        r = client.get('/collections/Q72',
+            'https://brandy.test/t/collections/Q72-brand/items'
+        r = client.get('/collections/Q72-brand',
                        headers={'Accept': 'application/json'})
         assert r.status_code == HTTPStatus.OK
         assert r.json == Q72_collection
 
     def test_unauthorized(self, client):
-        r = client.post('/collections/Q72/items', data={'scraped': '{}'})
+        r = client.post('/collections/Q72-brand/items', data={'scraped': '{}'})
         assert r.status_code == HTTPStatus.UNAUTHORIZED
         assert r.headers['WWW-Authenticate'].startswith('Basic')

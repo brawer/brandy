@@ -20,13 +20,13 @@ from brandy.db import get_db
 bp = flask.Blueprint('collections', __name__, url_prefix='/collections')
 
 
-@bp.route('/Q<int:brand_id>')
+@bp.route('/Q<int:brand_id>-brand')
 @accept_fallback
 def collection(brand_id):
     return collection_json(brand_id)
 
 
-@bp.route('/Q<int:brand_id>.json')
+@bp.route('/Q<int:brand_id>-brand.json')
 @collection.support('application/json')
 def collection_json(brand_id):
     db = get_db()
@@ -71,7 +71,7 @@ def collection_json(brand_id):
     return resp
 
 
-@bp.route('/Q<int:brand_id>.html')
+@bp.route('/Q<int:brand_id>-brand.html')
 @collection.support('text/html')
 def collection_html(brand_id):
     _ = collection_json(brand_id)  # raises NotFound for unknown brands
@@ -82,7 +82,7 @@ def collection_html(brand_id):
     return resp
 
 
-@bp.route('/Q<int:brand_id>/items', methods=('GET', 'POST'))
+@bp.route('/Q<int:brand_id>-brand/items', methods=('GET', 'POST'))
 @auth.login_required(optional=True)
 def items(brand_id):
     urlpath = flask.url_for('collections.items', _external=True,
