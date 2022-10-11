@@ -25,6 +25,38 @@ from brandy.db import get_db
 bp = flask.Blueprint('collections', __name__, url_prefix='/collections')
 
 
+@bp.route('')
+@accept_fallback
+def index():
+    return index_json()
+
+
+@bp.route('.json')
+@index.support('application/json')
+def index_json():
+    db = get_db()
+    last_modified = None
+    collections = []
+    for brand in db.execute(
+        'SELECT wikidata_id, last_modified, min_lng, min_lat, max_lng, max_lat'
+        ' FROM brand').fetchall():
+            brand_id = brand['wikidata_id']
+            if last_modified == None or last_modified < brand['last_modified']:
+                last_modified = brand['last_modified']
+            bbox = [
+                brand['min_lng'], brand['min_lat'],
+                brand['max_lng'], brand['max_lat']
+            ]
+            collections.append(_format_brand_collection_json(brand_id, bbox))
+    resp = flask.json.jsonify({'links': [], 'collections': collections})
+    resp.headers['Content-Type'] = 'application/json'
+    if last_modified != None:
+        resp.headers['Last-Modified'] = last_modified.isoformat() + 'Z'
+    if not flask.request.path.endswith('.json'):
+        resp.headers['Vary'] = 'Accept'
+    return resp
+
+
 @bp.route('/Q<int:brand_id>-brand')
 @accept_fallback
 def collection(brand_id):
@@ -45,29 +77,7 @@ def collection_json(brand_id):
         brand['min_lng'], brand['min_lat'],
         brand['max_lng'], brand['max_lat']
     ]
-    self_url = flask.url_for('collections.collection', _external=True,
-                             brand_id=brand_id)
-    items_url = flask.url_for('collections.items', _external=True,
-                              brand_id=brand_id)
-    resp = flask.json.jsonify({
-        'id': 'Q%s' % brand_id,
-        'extent': {
-            'spatial': {'bbox': [bbox]},
-        },
-        'links': [
-            {
-                'rel': 'self',
-                'href': self_url + '.json',
-                'type': 'application/json'
-            },
-            {
-                'rel': 'alternate',
-                'href': self_url + '.html',
-                'type': 'text/html'
-            },
-            {'rel': 'items', 'href': items_url}
-        ]
-    })
+    resp = flask.json.jsonify(_format_brand_collection_json(brand_id, bbox))
     if not flask.request.path.endswith('.json'):
         resp.headers['Vary'] = 'Accept'
     return resp
@@ -202,3 +212,29 @@ def hash_blob(b):
     # set up a C compiler in our build, but that seems like overkill.
     if type(b) == str: b = b.encode('utf-8')
     return struct.unpack('>ll', hashlib.shake_128(b).digest(8))
+
+
+def _format_brand_collection_json(brand_id, bbox):
+    self_url = flask.url_for('collections.collection', _external=True,
+                             brand_id=brand_id)
+    items_url = flask.url_for('collections.items', _external=True,
+                              brand_id=brand_id)
+    return {
+        'id': 'Q%s-brand' % brand_id,
+        'extent': {
+            'spatial': {'bbox': [bbox]},
+        },
+        'links': [
+            {
+                'rel': 'self',
+                'href': self_url + '.json',
+                'type': 'application/json'
+            },
+            {
+                'rel': 'alternate',
+                'href': self_url + '.html',
+                'type': 'text/html'
+            },
+            {'rel': 'items', 'href': items_url}
+        ]
+    }

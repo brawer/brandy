@@ -53,7 +53,7 @@ Q72_scraped = {
 
 
 Q72_collection = {
-    'id': 'Q72',
+    'id': 'Q72-brand',
     'extent': {
         'spatial': {'bbox': [[8.5, 47.3, 8.6, 47.6]]},
     },
@@ -69,6 +69,12 @@ Q72_collection = {
         'rel': 'items',
         'href': 'https://brandy.test/t/collections/Q72-brand/items'
     }]
+}
+
+
+all_collections = {
+    'links': [],
+	'collections': [Q72_collection]
 }
 
 
@@ -95,6 +101,14 @@ def q72(basic_auth, client):
         '/collections/Q72-brand/items', headers=basic_auth('testbot'),
         data = {'scraped': (scraped, 's.json', 'application/geo+json')})
     assert r.status_code == HTTPStatus.CREATED
+
+
+class TestIndex:
+    def test_json(self, q72, client):
+        r = client.get('/collections', headers={'Accept': 'application/json'})
+        assert r.headers['Content-Type'] == 'application/json'
+        assert r.headers['Vary'] == 'Accept'
+        assert r.json == all_collections
 
 
 class TestGetCollection:
