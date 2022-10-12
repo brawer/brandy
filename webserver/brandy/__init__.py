@@ -4,6 +4,7 @@
 import os
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 def create_app(test_config=None):
@@ -37,5 +38,9 @@ def create_app(test_config=None):
     app.register_blueprint(collections.bp)
     app.register_blueprint(scrapes.bp)
     app.register_blueprint(users.bp)
+
+    # Tell Flask it is behind a proxy.
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     return app
