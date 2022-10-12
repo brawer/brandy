@@ -33,10 +33,11 @@ def create_app(test_config=None):
     app.jinja_env.keep_trailing_newline = True
 
     # Set up database connection and register Flask blueprints.
-    from . import db, collections, scrapes, users
+    from . import db, collections, scrapes, tiles, users
     db.init_app(app)
     app.register_blueprint(collections.bp)
     app.register_blueprint(scrapes.bp)
+    app.register_blueprint(tiles.bp)
     app.register_blueprint(users.bp)
 
     # Tell Flask it is behind a proxy.

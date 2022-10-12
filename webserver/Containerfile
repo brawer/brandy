@@ -7,16 +7,29 @@
 # mounted into the container file system at /mnt/storage. This is used
 # for all persistent data files, including the server’s SQLite databse.
 #
-# The container is produces in a a multi-stage build. Inside the "builder"
-# container, we set up a developemtn environment, run unittests and package
-# the webserver as a wheel file (a form of Python distribution).
+# The container is produces in a a multi-stage build:
 #
-# In the final production container, we install the previously built wheel.
-# Therefore, the build production container does not contain any tests
-# or development tools. This reduces the container’s attack surface.
-# (The space savings are only marginal because our app is quite small.)
+# 1. Inside the "util_builder" container, we build and test the utility
+#    binaries that the Python app executes.
+#
+# 2. Inside the "py_builder" container, we set up a Python development
+#    environment, run unittests and package the webserver as a wheel file
+#    (a form of Python distribution).
+#
+# 3. In the final production container, we install the previously built
+#    artifacts. Therefore, the build production container does not contain
+#    any compiler toolchain, tests or development tools. This reduces
+#    the container’s image size and attack surface.
 
-FROM python:3.10-alpine AS builder
+FROM rust:1.64-alpine3.16 AS util_builder
+COPY webserver/rendertile /build/rendertile
+WORKDIR /build/rendertile
+RUN cargo build --locked && cargo test --locked
+RUN cargo build --locked --release && cargo test --locked --release
+RUN cp target/release/rendertile rendertile
+
+FROM python:3.10-alpine AS py_builder
+COPY --from=util_builder /build/rendertile/rendertile /usr/local/bin/rendertile
 COPY . /brandy
 WORKDIR /brandy/webserver
 RUN apk add git && \
@@ -26,7 +39,8 @@ RUN python3 setup.py bdist_wheel
 
 FROM python:3.10-alpine
 WORKDIR /brandy/webserver
-COPY --from=builder /brandy/webserver/dist dist
+COPY --from=util_builder /build/rendertile/rendertile /usr/local/bin/rendertile
+COPY --from=py_builder /brandy/webserver/dist dist
 RUN \
   pip install dist/*.whl && \
   rm -rf dist && \

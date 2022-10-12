@@ -13,9 +13,17 @@ export function initMap(data) {
             minZoom: 1,
             crossOrigin: true,
             attribution:
-                '© <a href="http://www.openstreetmap.org/copyright">OSM</a>' +
-              ' · ' + data.brand_name
-    }).addTo(map);;
+                '© <a href="http://www.openstreetmap.org/copyright">OSM</a>'
+        }).addTo(map);
+
+	// Experimental: Visualize *all* data with raster tiles rendered in Rust.
+    if (data.brand_id == 'Q1958759') {
+        L.tileLayer(
+            '/tiles/' + data.brand_id + '-brand/{z}/{x}/{y}.png', {
+                crossOrigin: false,
+                attribution: '© ' + data.brand_name
+            }).addTo(map);
+    }
 
     const bbox = data.bbox;
     map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
