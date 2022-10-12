@@ -8,54 +8,41 @@
 {% block title %}Brandy: Q123{% endblock %}
 
 {% block head %}
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin=""/>
-
   <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
-
-
 {% endblock %}
 
 {% block h1 %}<h1>{{ data['brand_id'] }}</h1>{% endblock %}
 
 {% block content %}
-<!--
-  Last Checked: {{ data['last_checked'] }}
-  Last Modified: {{ data['last_modified'] }}
--->
-<div id="map"></div>
+<div id="map"/>
 <script>
-
-var bbox = {{ data['bbox'] }};
-var map = L.map('map', {
-  zoomControl: false
-});
-map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
-
-L.tileLayer(
-    'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
-    {
-        tileSize: 256,
-        minZoom: 1,
-        crossOrigin: true,
-        attribution:
-            '©<a href="http://www.openstreetmap.org/copyright">OSM</a>, {{ data['brand_name'] }}'
-      }).addTo(map);
+function initMap(data) {
+    const map = L.map('map', {zoomControl: false});
     L.control.zoom({position: 'bottomright'}).addTo(map);
+    L.tileLayer(  // light_all, light_nolabels, light_only_labels
+        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            minZoom: 1,
+            crossOrigin: true,
+            attribution:
+                '© <a href="http://www.openstreetmap.org/copyright">OSM</a>' +
+              ' · ' + data.brand_name
+    }).addTo(map);;
 
-var polygon = L.polygon([
-    [bbox[1], bbox[0]],
-    [bbox[1], bbox[2]],
-    [bbox[3], bbox[2]],
-    [bbox[3], bbox[0]]
-]).addTo(map).bindPopup('TODO: Show markers');
+    const bbox = data.bbox;
+    map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+    L.polygon([
+        [bbox[1], bbox[0]],
+        [bbox[1], bbox[2]],
+        [bbox[3], bbox[2]],
+        [bbox[3], bbox[0]]
+    ]).addTo(map).bindPopup('TODO: Show markers');
 
-fetch("{{ data['items_url'] }}", {
-  "headers": {
-    "Accept": 'application/geo+json'
-  }})
-  .then(response => response.json())
-  .then(data => console.log(data));
+    fetch(data.items_url, {headers: {Accept: 'application/geo+json'}})
+        .then(response => response.json())
+        .then(features => console.log(features));
+}
 
+window.addEventListener('load', (event) => initMap({{ data_json | safe }}));
 </script>
 {% endblock %}

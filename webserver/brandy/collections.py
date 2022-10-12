@@ -94,7 +94,7 @@ def collection_html(brand_id):
         (brand_id,)).fetchone()
     if brand == None:
         raise NotFound()
-    rendered = flask.render_template('collections/map.html', data={
+    data = {
         'bbox': [
             brand['min_lng'], brand['min_lat'],
             brand['max_lng'], brand['max_lat']
@@ -105,7 +105,9 @@ def collection_html(brand_id):
         'last_modified': brand['last_modified'].isoformat() + 'Z',
         'items_url': flask.url_for('collections.items', _external=True,
                                    brand_id=brand_id)
-    })
+    }
+    rendered = flask.render_template(
+        'collections/map.html', data=data, data_json=json.dumps(data))
     resp = flask.make_response(rendered)
     if not flask.request.path.endswith('.html'):
         resp.headers['Vary'] = 'Accept'
