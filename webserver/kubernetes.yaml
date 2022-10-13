@@ -74,7 +74,7 @@ spec:
     spec:
       containers:
       - name: webserver
-        image: ghcr.io/brawer/brandy/webserver:0.0.3
+        image: ghcr.io/brawer/brandy/webserver:0.0.6
         ports:
         - containerPort: 80
         volumeMounts:
