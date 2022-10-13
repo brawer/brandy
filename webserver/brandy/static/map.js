@@ -16,13 +16,19 @@ export function initMap(data) {
                 '© <a href="http://www.openstreetmap.org/copyright">OSM</a>'
         }).addTo(map);
 
-    const bbox = data.bbox;
-    map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
+    const bounds = L.latLngBounds(
+        L.latLng(data.bbox[1], data.bbox[0]),
+        L.latLng(data.bbox[3], data.bbox[2]));
+    map.fitBounds(bounds);
     L.tileLayer(
         '/tiles/' + data.brand_id + '-brand/{z}/{x}/{y}.png', {
-            crossOrigin: false,
-            attribution: '© ' + data.brand_name
+            attribution: '© ' + data.brand_name,
+            bounds: bounds,
+            crossOrigin: false
         }).addTo(map);
+    map.on('click', function(e) {
+        console.log('click', e.latlng);
+    });
 
     // TODO:
     //
@@ -40,6 +46,12 @@ export function initMap(data) {
     // 3. Issue an HTTP request to retrieve the geographic feature
     //    (brand store) at the clicked location. Display its properties
     //    inside the panel.
+    //
+    // 4. When the user moves the mouse, render the overlay tile underneath
+    //    the mouse location into a JavaScript canvas, and retrieve the
+    //    pixel color at the mouse location. Adjust the mouse cursor shape
+    //    depending on whether the pixel is transparent or non-transparent.
+    //    This will improve the user experience.
     //
     // As the project matures, this panel will likely be the main
     // user interface for people who work with Brandy. Because it
