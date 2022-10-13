@@ -16,27 +16,36 @@ export function initMap(data) {
                 '© <a href="http://www.openstreetmap.org/copyright">OSM</a>'
         }).addTo(map);
 
-	// Experimental: Visualize *all* data with raster tiles rendered in Rust.
-    if (data.brand_id == 'Q1958759') {
-        L.tileLayer(
-            '/tiles/' + data.brand_id + '-brand/{z}/{x}/{y}.png', {
-                crossOrigin: false,
-                attribution: '© ' + data.brand_name
-            }).addTo(map);
-    }
-
     const bbox = data.bbox;
     map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]]);
-    L.polygon([
-        [bbox[1], bbox[0]],
-        [bbox[1], bbox[2]],
-        [bbox[3], bbox[2]],
-        [bbox[3], bbox[0]]
-    ]).addTo(map).bindPopup('TODO: Show markers');
+    L.tileLayer(
+        '/tiles/' + data.brand_id + '-brand/{z}/{x}/{y}.png', {
+            crossOrigin: false,
+            attribution: '© ' + data.brand_name
+        }).addTo(map);
 
-    fetch(data.items_url, {headers: {Accept: 'application/geo+json'}})
-        .then(response => response.json())
-        .then(features => console.log(features));
+    // TODO:
+    //
+    // 1. Add a panel to the bottom of the window that later
+    //    allows interacting the the content. When the user clicks
+    //    on the map, change the panel contents to show the coordinates
+    //    of the clicked location.
+    //
+    // 2. Make sure the panel size responds to the screen dimensions.
+    //    On a mobile phone held vertically, the panel should be placed
+    //    at the bottom of the page; on a desktop screen, the panel
+    //    should be at the right of the page. This is can be done
+    //    in CSS, see any introduction to responsive web design.
+    //
+    // 3. Issue an HTTP request to retrieve the geographic feature
+    //    (brand store) at the clicked location. Display its properties
+    //    inside the panel.
+    //
+    // As the project matures, this panel will likely be the main
+    // user interface for people who work with Brandy. Because it
+    // will contain various information and widgets, it really should
+    // to be a separate panel on the page, not just a popup bubble
+    // on the map.
 }
 
 

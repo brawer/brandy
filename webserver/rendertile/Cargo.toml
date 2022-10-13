@@ -6,5 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hex = "0.4.3"
+png = "0.17.6"
+serde = "1.0.145"
+serde_json = "1.0.86"
 tiny-skia = "0.8.1"
-tinyrand = "0.5.0"
+
+
