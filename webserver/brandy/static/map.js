@@ -6,6 +6,7 @@
 // TODO: Use webpack or similar to minimize download size.
 
 export function initMap(data) {
+    const tilesUrl = `/tiles/${data.brand_id}-brand`
     const map = L.map('map', {zoomControl: false});
     L.control.zoom({position: 'bottomright'}).addTo(map);
     L.tileLayer(  // light_all, light_nolabels, light_only_labels
@@ -20,22 +21,31 @@ export function initMap(data) {
         L.latLng(data.bbox[1], data.bbox[0]),
         L.latLng(data.bbox[3], data.bbox[2]));
     map.fitBounds(bounds);
-    L.tileLayer(
-        '/tiles/' + data.brand_id + '-brand/{z}/{x}/{y}.png', {
+    L.tileLayer(tilesUrl + '/{z}/{x}/{y}.png', {
             attribution: '© ' + data.brand_name,
             bounds: bounds,
             crossOrigin: false
         }).addTo(map);
     map.on('click', function(e) {
-        console.log('click', e.latlng);
+		const p = map.project(map.wrapLatLng(e.latlng), map.zoom);
+        const tileSize = 256;
+        const z = map.getZoom();
+		const x = Math.trunc(p.x / tileSize);
+		const y = Math.trunc(p.y / tileSize);
+		const i = Math.trunc(p.x % tileSize);
+		const j = Math.trunc(p.y % tileSize);
+		const url = tilesUrl + `/${z}/${x}/${y}/${i}/${j}.geojson`;
+		fetch(url, {headers: {'Accept': 'application/geo+json'}})
+            .then((response) => response.json())
+            .then((data) => console.log(data));
     });
 
     // TODO:
     //
     // 1. Add a panel to the bottom of the window that later
     //    allows interacting the the content. When the user clicks
-    //    on the map, change the panel contents to show the coordinates
-    //    of the clicked location.
+    //    on the map, change the panel contents to show the properties
+    //    of the clicked feature.
     //
     // 2. Make sure the panel size responds to the screen dimensions.
     //    On a mobile phone held vertically, the panel should be placed
@@ -43,11 +53,7 @@ export function initMap(data) {
     //    should be at the right of the page. This is can be done
     //    in CSS, see any introduction to responsive web design.
     //
-    // 3. Issue an HTTP request to retrieve the geographic feature
-    //    (brand store) at the clicked location. Display its properties
-    //    inside the panel.
-    //
-    // 4. When the user moves the mouse, render the overlay tile underneath
+    // 3. When the user moves the mouse, render the overlay tile underneath
     //    the mouse location into a JavaScript canvas, and retrieve the
     //    pixel color at the mouse location. Adjust the mouse cursor shape
     //    depending on whether the pixel is transparent or non-transparent.
@@ -59,5 +65,3 @@ export function initMap(data) {
     // to be a separate panel on the page, not just a popup bubble
     // on the map.
 }
-
-

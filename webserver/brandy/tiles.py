@@ -34,3 +34,24 @@ def tile(brand_id, zoom, x, y):
         'Content-Type': 'image/png'
     })
 
+
+@bp.route('/Q<int:brand_id>-brand/<int:zoom>/<int:x>/<int:y>/<int:i>/<int:j>.geojson')
+def clicked_feature(brand_id, zoom, x, y, i, j):  # OGC WMTS GetFeatureInfo
+    resp = flask.json.jsonify({
+        'type': 'FeatureCollection',
+        'features': [{
+            'type': 'Feature',
+            'geometry': {'type': 'Point', 'coordinates': [12.345, 5.678]},
+            'id': 'TODO-id',
+            'properties': {
+                'addr:city': 'Bern',
+                'addr:street': 'Länggassstrasse',
+                'addr:housenumber': '27',
+                'addr:postcode': '3012',
+                'brand:wikidata': 'Q%d' % brand_id,
+                'name': 'TODO'
+            }
+        }]
+    })
+    resp.headers['Content-Type'] = 'application/geo+json'
+    return resp
