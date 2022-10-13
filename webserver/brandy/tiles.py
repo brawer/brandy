@@ -14,9 +14,17 @@ bp = flask.Blueprint('tiles', __name__, url_prefix='/tiles')
 @bp.route('/Q<int:brand_id>-brand/<int:zoom>/<int:x>/<int:y>.png')
 def tile(brand_id, zoom, x, y):
     tile = {'zoom': zoom, 'x': x, 'y': y}
+    if zoom <= 3:
+        marker_width = 5.0
+    if zoom <= 6:
+        marker_width = 6.0
+    elif zoom >= 10:
+        marker_width = 16.0
+    else:
+        marker_width = {7: 9.0, 8: 12.5, 9: 14.0}[zoom]
     layer = {
         'marker-fill': '#4287F5',
-        'marker-width': 6.0
+        'marker-width': marker_width
     }
     db = get_db()
     with subprocess.Popen(
