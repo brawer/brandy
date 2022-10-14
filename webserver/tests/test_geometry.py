@@ -2,8 +2,20 @@
 # SPDX-FileCopyrightText: 2022 Sascha Brawer <sascha@brawer.ch>
 
 import pytest
+from pytest import approx
 
-from brandy.geometry import bbox
+from brandy.geometry import bbox, wgs84_to_tile, tile_to_wgs84
+
+
+def test_wgs84_to_tile():
+    assert wgs84_to_tile(8.4, 47.5, 9) == (267, 179)
+
+
+def test_tile_to_wgs84():
+    assert tile_to_wgs84(0, 0, 0) == approx((-180.0, +85.051129))
+    assert tile_to_wgs84(0, 1, 1) == approx((+180.0, -85.051129))
+    assert tile_to_wgs84(9, 268, 179) == approx((8.437500, 47.517201))
+
 
 def test_bbox_for_geometry():
     assert bbox({

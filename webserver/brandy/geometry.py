@@ -3,6 +3,26 @@
 #
 # Geometry-related utility functions
 
+import math
+
+
+def wgs84_to_tile(lng, lat, zoom):
+    """WGS-84 (longitude, lat) to tile coordinates (x, y) at given zoom."""
+    lat_rad = math.radians(lat)
+    n = float(1 << zoom)
+    x = int((lng + 180.0) / 360.0 * n)
+    y = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+    return (x, y)
+
+
+def tile_to_wgs84(zoom, x, y):
+    """Tile coordinates (zoom, x, y) --> WGS-84 (longitude, latitude)"""
+    n = float(1 << zoom)
+    lng = x / n * 360.0 - 180.0
+    lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * y / n)))
+    return (lng, math.degrees(lat_rad))
+
+
 def bbox(o):
     """Compute bounding box of a GeoJSON Feature, FeatureCollection or geometry"""
     if type(o) != dict:
