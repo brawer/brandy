@@ -63,3 +63,22 @@ def add_admin_command():
     create_user(username, password, is_admin=True)
     db.commit()
     click.echo('Created user \"%s\" with admin rights.' % username)
+
+
+def build_find_features_query(brand_id, bbox=None, limit=None):
+    columns = ['f.feature_id', 'f.lng', 'f.lat', 'f.props']
+    tables = ['brand_feature AS f']
+    conditions, params = ['f.brand_id=?'], [brand_id]
+    if bbox != None:
+        tables.append('brand_feature_rtree AS r')
+        conditions.append('f.internal_id=r.internal_id')
+        conditions.append('r.min_lng>=%g' % float(bbox[0]))
+        conditions.append('r.max_lng<=%g' % float(bbox[2]))
+        conditions.append('r.min_lat>=%g' % float(bbox[1]))
+        conditions.append('r.max_lat<=%g' % float(bbox[3]))
+        conditions.append('r.brand_id=%d' % brand_id)
+    query = 'SELECT %s FROM %s WHERE %s' % (
+        ', '.join(columns), ', '.join(tables), ' AND '.join(conditions))
+    if limit != None:
+        query += ' LIMIT %d' % int(limit)
+    return (query, tuple(params))

@@ -42,6 +42,7 @@ CREATE TABLE brand (
 );
 
 CREATE TABLE brand_feature (
+  internal_id INTEGER PRIMARY KEY AUTOINCREMENT,
   brand_id INT8 NOT NULL,
   feature_id TEXT NOT NULL,
   lng REAL NOT NULL,
@@ -50,4 +51,11 @@ CREATE TABLE brand_feature (
   hash_lo INT8 NOT NULL,
   last_modified TIMESTAMP NOT NULL,
   props BLOB NOT NULL
+);
+
+CREATE VIRTUAL TABLE brand_feature_rtree USING rtree(
+   internal_id,
+   min_lng, max_lng,
+   min_lat, max_lat,
+   +brand_id INT8
 );

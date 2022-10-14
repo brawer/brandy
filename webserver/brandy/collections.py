@@ -179,9 +179,10 @@ def store_scraped(db, brand_id, scraped):
     if bbox == None:
         raise BadRequest()
     bbox = [float(c) for c in bbox]
+    cursor = db.cursor()
 
     old = {}
-    for f in db.execute(
+    for f in cursor.execute(
         'SELECT feature_id, hash_hi, hash_lo, last_modified'
         ' FROM brand_feature WHERE brand_id = ?',
         (brand_id,)
@@ -189,8 +190,11 @@ def store_scraped(db, brand_id, scraped):
         old[f['feature_id']] = (f['hash_hi'], f['hash_lo'], f['last_modified'])
     last_modified = None
 
-    db.execute('DELETE FROM brand WHERE wikidata_id = ?', (brand_id,))
-    db.execute('DELETE FROM brand_feature WHERE brand_id = ?', (brand_id,))
+    cursor.execute('DELETE FROM brand WHERE wikidata_id = ?', (brand_id,))
+    cursor.execute('DELETE FROM brand_feature WHERE brand_id = ?', (brand_id,))
+    cursor.execute('DELETE FROM brand_feature_rtree WHERE brand_id = ?',
+                   (brand_id,))
+
     for feature in content['features']:
         min_lng, min_lat, max_lng, max_lat = brandy.geometry.bbox(feature)
         lng, lat = (min_lng + max_lng) / 2, (min_lat + max_lat) / 2
@@ -207,13 +211,20 @@ def store_scraped(db, brand_id, scraped):
                 feature_last_modified = old_last_modified
         if last_modified == None or last_modified < feature_last_modified:
             last_modified = feature_last_modified
-        db.execute(
+        cursor.execute(
             'INSERT INTO brand_feature ('
             '    brand_id, feature_id, lng, lat,'
             '    hash_hi, hash_lo, last_modified, props)'
             'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             (brand_id, feature_id, lng, lat, hash_hi, hash_lo, last_modified,
              props_compressed))
+        internal_id = cursor.lastrowid
+        cursor.execute(
+            'INSERT INTO brand_feature_rtree ('
+            '    internal_id, min_lng, max_lng, min_lat, max_lat, brand_id)'
+			'VALUES (?, ?, ?, ?, ?, ?)',
+			(internal_id, min_lng, max_lng, min_lat, max_lat, brand_id))
+
     last_checked = now
     if last_modified == None:
         last_modified = now

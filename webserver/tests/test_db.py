@@ -4,7 +4,7 @@
 import pytest
 import sqlite3
 
-from brandy.db import get_db
+from brandy.db import get_db, build_find_features_query
 
 # Within an application context, get_db should return
 # the same connection each time it’s called. After the context,
@@ -28,3 +28,22 @@ def test_init_db_command(runner, monkeypatch):
     result = runner.invoke(args=['init-db'])
     assert 'Initialized' in result.output
     assert Recorder.called
+
+
+def test_build_find_features_query():
+    t = lambda x: x[0].replace('?', '%s') % x[1]
+    assert t(build_find_features_query(7272, bbox=None, limit=None)) == (
+        'SELECT f.feature_id, f.lng, f.lat, f.props'
+        ' FROM brand_feature AS f WHERE f.brand_id=7272')
+    assert t(build_find_features_query(7272, bbox=None, limit=10)) == (
+        'SELECT f.feature_id, f.lng, f.lat, f.props'
+        ' FROM brand_feature AS f WHERE f.brand_id=7272'
+        ' LIMIT 10')
+    assert t(build_find_features_query(7272, bbox=(1.1, 2.2, 3.3, 4.4), limit=10)) == (
+        'SELECT f.feature_id, f.lng, f.lat, f.props'
+        ' FROM brand_feature AS f, brand_feature_rtree AS r'
+        ' WHERE f.brand_id=7272 AND f.internal_id=r.internal_id'
+        ' AND r.min_lng>=1.1 AND r.max_lng<=3.3'
+        ' AND r.min_lat>=2.2 AND r.max_lat<=4.4'
+        ' AND r.brand_id=7272'
+        ' LIMIT 10')

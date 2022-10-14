@@ -6,8 +6,10 @@
 import flask
 import json
 import subprocess
+import zlib
 
-from brandy.db import get_db
+from brandy.db import get_db, build_find_features_query
+from brandy.geometry import tile_to_wgs84
 
 bp = flask.Blueprint('tiles', __name__, url_prefix='/tiles')
 
@@ -45,21 +47,25 @@ def tile(brand_id, zoom, x, y):
 
 @bp.route('/Q<int:brand_id>-brand/<int:zoom>/<int:x>/<int:y>/<int:i>/<int:j>.geojson')
 def clicked_feature(brand_id, zoom, x, y, i, j):  # OGC WMTS GetFeatureInfo
+    fuzz = 6  # how many pixels we allow to be off, for incaccurate clicks
+    p = tile_to_wgs84(zoom + 8, x * 256 + i, y * 256 + j)
+    p1 = tile_to_wgs84(zoom + 8, x * 256 + i - fuzz, y * 256 + j - fuzz)
+    p2 = tile_to_wgs84(zoom + 8, x * 256 + i + fuzz, y * 256 + j + fuzz)
+    bbox = (p1[0], p2[1], p2[0], p1[1])
+    query, params = build_find_features_query(brand_id, bbox=bbox, limit=1)
+    features = []
+    f = get_db().execute(query, params).fetchone()
+    if f != None:
+        features.append({
+            'type': 'Feature',
+            'geometry': {'type': 'Point', 'coordinates': [f['lng'], f['lat']]},
+            'id': f['feature_id'],
+            'properties': json.loads(zlib.decompress(f['props']))
+        })
+        print(features)
     resp = flask.json.jsonify({
         'type': 'FeatureCollection',
-        'features': [{
-            'type': 'Feature',
-            'geometry': {'type': 'Point', 'coordinates': [12.345, 5.678]},
-            'id': 'TODO-id',
-            'properties': {
-                'addr:city': 'Bern',
-                'addr:street': 'Länggassstrasse',
-                'addr:housenumber': '27',
-                'addr:postcode': '3012',
-                'brand:wikidata': 'Q%d' % brand_id,
-                'name': 'TODO'
-            }
-        }]
+        'features': features
     })
     resp.headers['Content-Type'] = 'application/geo+json'
     return resp
