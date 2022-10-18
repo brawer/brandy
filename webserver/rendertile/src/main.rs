@@ -40,7 +40,7 @@ impl Tile {
             zoom,
             x,
             y,
-            image: Pixmap::new(256, 256).unwrap(),
+            image: Pixmap::new(256, 256).expect("fixed pixmap can always be allocated"),
             layer: Layer::default(),
         };
     }
@@ -80,7 +80,7 @@ impl Layer {
         Layer {
             marker_color: ColorU8::from_rgba(0, 0, 0, 0),
             marker_width: 1.0,
-            foreground: Pixmap::new(1, 1).unwrap(),
+            foreground: Pixmap::new(1, 1).expect("fixed pixmap can always be allocated"),
         }
     }
 
@@ -88,7 +88,7 @@ impl Layer {
         Layer {
             marker_color: marker_color,
             marker_width: marker_width,
-            foreground: Pixmap::new(256, 256).unwrap(),
+            foreground: Pixmap::new(256, 256).expect("fixed pixmap can always be allocated"),
         }
     }
 
@@ -98,8 +98,14 @@ impl Layer {
 
         let width = self.marker_width;
         let r = width / 2.0;
-        let bbox = Rect::from_xywh(x - r, y - r, width, width).unwrap();
-        let path = PathBuilder::from_oval(bbox).unwrap();
+        let bbox = match Rect::from_xywh(x - r, y - r, width, width) {
+            Some(x) => x,
+            None => return,
+        };
+        let path = match PathBuilder::from_oval(bbox) {
+            Some(p) => p,
+            None => return,
+        };
         paint.set_color_rgba8(
             self.marker_color.red(),
             self.marker_color.green(),
@@ -120,7 +126,7 @@ fn main() -> io::Result<()> {
     let mut tile = Tile::new(0, 0, 0);
 
     for line in io::stdin().lines() {
-        let l = line.unwrap();
+        let l = line?;
         let (cmd, data) = l.split_at(1);
         let v: Value = serde_json::from_str(data)?;
         match cmd {
@@ -149,23 +155,13 @@ fn main() -> io::Result<()> {
         }
     }
     tile.finish_layer();
-    let png = tile.encode_png().unwrap();
+    let png = tile.encode_png()?;
     io::stdout().write_all(&png)?;
     Ok(())
 }
 
 fn parse_color(c: String) -> Option<tiny_skia::ColorU8> {
-    let stripped = c.strip_prefix("#");
-    if stripped.is_none() {
-        return None;
-    }
-
-    let decoded = hex::decode(stripped.unwrap());
-    if !decoded.is_ok() {
-        return None;
-    }
-
-    let n = decoded.unwrap();
+    let n = hex::decode(c.strip_prefix("#")?).ok()?;
     match n.len() {
         3 => return Some(ColorU8::from_rgba(n[0], n[1], n[2], 255)),
         4 => return Some(ColorU8::from_rgba(n[0], n[1], n[2], 255)),
